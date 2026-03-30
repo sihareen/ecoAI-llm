@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-LLM_MODEL="${1:-qwen2.5:1.5b}"
+LLM_MODEL="${1:-llama3.2}"
 EMBED_MODEL="${2:-nomic-embed-text}"
 
 echo "Pulling LLM model: ${LLM_MODEL}"

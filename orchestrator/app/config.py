@@ -44,10 +44,10 @@ class Settings:
 def load_settings() -> Settings:
     return Settings(
         ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://ollama:11434"),
-        ollama_model=os.getenv("OLLAMA_MODEL", "qwen2.5:1.5b"),
+        ollama_model=os.getenv("OLLAMA_MODEL", "llama3.2:latest"),
         embedding_model=os.getenv("EMBEDDING_MODEL", "nomic-embed-text"),
-        rag_model_alias=os.getenv("RAG_MODEL_ALIAS", "qwen2.5-rag:1.5b"),
-        original_model_alias=os.getenv("ORIGINAL_MODEL_ALIAS", os.getenv("OLLAMA_MODEL", "qwen2.5:1.5b")),
+        rag_model_alias=os.getenv("RAG_MODEL_ALIAS", "llama3.2-rag"),
+        original_model_alias=os.getenv("ORIGINAL_MODEL_ALIAS", os.getenv("OLLAMA_MODEL", "llama3.2:latest")),
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
         chroma_port=_env_int("CHROMA_PORT", 8000),
         chroma_collection=os.getenv("CHROMA_COLLECTION", "claude_reasoning"),

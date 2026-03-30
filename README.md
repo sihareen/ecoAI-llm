@@ -3,7 +3,7 @@
 Arsitektur runtime:
 - Browser -> Open WebUI (`:3000`)
 - Open WebUI -> Orchestrator RAG (`:8080`, endpoint kompatibel Ollama)
-- Orchestrator -> Ollama (`qwen2.5:1.5b` + `nomic-embed-text`) + ChromaDB (`:8000`)
+- Orchestrator -> Ollama (`llama3.2` + `nomic-embed-text`) + ChromaDB (`:8000`)
 
 ## Flow System
 
@@ -45,7 +45,7 @@ Arsitektur runtime:
   4) bangun super-prompt (system + konteks + prompt user)
         |
         v
-[Ollama qwen2.5:1.5b]
+[Ollama llama3.2]
   - reasoning + generation
         |
         v
@@ -73,7 +73,7 @@ docker compose up -d --build ollama chromadb orchestrator open-webui
 ```
 
 Default:
-- LLM: `qwen2.5:1.5b`
+- LLM: `llama3.2`
 - Embedding: `nomic-embed-text`
 
 ## 3) Ingest dataset
@@ -101,7 +101,7 @@ Opsional:
 ```bash
 curl -X POST 'http://localhost:8080/api/chat' \
   -H 'Content-Type: application/json' \
-  -d '{"model":"qwen2.5-rag:1.5b","stream":false,"messages":[{"role":"user","content":"my docker container keeps dying"}]}'
+        -d '{"model":"llama3.2-rag","stream":false,"messages":[{"role":"user","content":"my docker container keeps dying"}]}'
 ```
 
 Response format dipaksa:
@@ -111,4 +111,4 @@ Response format dipaksa:
 ## Catatan
 
 - Open WebUI sudah diarahkan ke orchestrator (`OLLAMA_BASE_URL=http://orchestrator:8080`).
-- Resource limit project: total 4 CPU + 8GB RAM (dibagi antar service di `docker-compose.yml`).
+- Resource project saat ini tidak dibatasi di `docker-compose.yml` dan mengikuti kapasitas host.

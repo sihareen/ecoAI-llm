@@ -92,6 +92,20 @@ def _ollama_url(path: str) -> str:
     return f"{settings.ollama_base_url.rstrip('/')}{path}"
 
 
+def _model_family(model_name: str) -> str:
+    name = model_name.strip()
+    if not name:
+        return "unknown"
+    return name.split(":", 1)[0]
+
+
+def _model_size(model_name: str) -> str:
+    name = model_name.strip()
+    if ":" not in name:
+        return "unknown"
+    return name.split(":", 1)[1]
+
+
 def _ollama_json(method: str, path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     try:
         response = httpx.request(
@@ -227,7 +241,7 @@ def ollama_tags() -> dict[str, Any]:
     models = list(upstream_models) if isinstance(upstream_models, list) else []
     models = [model for model in models if isinstance(model, dict)]
 
-    qwen_models: list[dict[str, Any]] = []
+    upstream_target_models: list[dict[str, Any]] = []
     for model in models:
         model_name = str(model.get("name", ""))
         if model_name != settings.ollama_model:
@@ -236,9 +250,12 @@ def ollama_tags() -> dict[str, Any]:
         if settings.original_model_alias and settings.original_model_alias != settings.ollama_model:
             mapped["name"] = settings.original_model_alias
             mapped["model"] = settings.original_model_alias
-        qwen_models.append(mapped)
+        upstream_target_models.append(mapped)
 
-    models = qwen_models
+    models = upstream_target_models
+
+    family = _model_family(settings.ollama_model)
+    parameter_size = _model_size(settings.ollama_model)
 
     if not any(model.get("name") == settings.rag_model_alias for model in models):
         models.insert(
@@ -252,10 +269,10 @@ def ollama_tags() -> dict[str, Any]:
                 "details": {
                     "parent_model": settings.ollama_model,
                     "format": "rag-proxy",
-                    "family": "qwen2",
-                    "families": ["qwen2"],
-                    "parameter_size": "1.5B",
-                    "quantization_level": "Q4_K_M",
+                    "family": family,
+                    "families": [family],
+                    "parameter_size": parameter_size,
+                    "quantization_level": "unknown",
                 },
             },
         )
@@ -275,8 +292,8 @@ def ollama_show(request: OllamaShowRequest) -> dict[str, Any]:
         "template": "RAG prompt template with <think> and <final> tags",
         "details": {
             "parent_model": settings.ollama_model,
-            "family": "qwen2",
-            "parameter_size": "1.5B",
+            "family": _model_family(settings.ollama_model),
+            "parameter_size": _model_size(settings.ollama_model),
         },
     }
 

@@ -288,3 +288,52 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
 - Verifikasi:
   - `git remote -v` menampilkan `origin` dengan URL yang diminta.
   - `git push -u origin PRISCOP` sukses dan upstream branch terpasang.
+
+## [2026-03-30 14:43] - Pelepasan batasan resource project
+- Agent: Codex
+- Ringkasan:
+  - Menghapus seluruh batasan `cpus` dan `mem_limit` dari semua service di `docker-compose.yml`.
+  - Memperbarui catatan README agar konsisten bahwa resource tidak lagi dibatasi oleh docker compose.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/docker-compose.yml
+  - /home/hreen/Documents/Magang/ecoAi-llm/README.md
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user untuk melepas batasan yang sebelumnya diset.
+- Dampak:
+  - Seluruh service kini menggunakan resource host tanpa limit hard-coded.
+  - Dokumentasi project kembali sinkron dengan konfigurasi runtime.
+- Verifikasi:
+  - `docker compose config` valid.
+  - Tidak ada `cpus`/`mem_limit` pada output konfigurasi final.
+
+## [2026-03-30 14:58] - Pengecekan model Ollama via command
+- Agent: Codex
+- Ringkasan: Menjalankan command untuk menampilkan model yang tersedia di service Ollama.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user untuk mengecek model yang digunakan Ollama.
+- Dampak: Daftar model aktif/terpasang pada Ollama terverifikasi.
+- Verifikasi:
+  - `docker compose exec ollama ollama list` menampilkan `qwen2.5:1.5b` dan `nomic-embed-text:latest`.
+
+## [2026-03-30 15:06] - Peralihan model default ke llama3.2
+- Agent: Codex
+- Ringkasan:
+  - Mengganti konfigurasi model default dari `qwen2.5:1.5b` ke `llama3.2` pada `.env`, `.env.example`, default config app, script bootstrap, dan README.
+  - Menggeneralisasi metadata model di endpoint `/api/tags` dan `/api/show` agar tidak hardcoded ke family `qwen2`.
+  - Pull model `llama3.2` di Ollama dan restart orchestrator agar runtime memakai model baru.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/.env
+  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example
+  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/config.py
+  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
+  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/bootstrap.sh
+  - /home/hreen/Documents/Magang/ecoAi-llm/README.md
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user untuk mengganti model ke `llama3.2`.
+- Dampak:
+  - Model default gateway berubah ke `llama3.2` dengan alias RAG `llama3.2-rag`.
+  - Model `llama3.2:latest` sudah tersedia di service Ollama.
+- Verifikasi:
+  - `docker compose exec ollama ollama list` menampilkan `llama3.2:latest`.
+  - `curl -s http://localhost:8080/health` menampilkan `ollama_model":"llama3.2"` dan `rag_model_alias":"llama3.2-rag"`.
