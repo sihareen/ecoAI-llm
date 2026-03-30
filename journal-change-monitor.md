@@ -421,3 +421,29 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
   - `git branch -a` menampilkan remote: `remotes/origin/dev/llama3.2`, `remotes/origin/dev/qwen2.5`, `remotes/origin/main`
   - Branch lama di remote berhasil dihapus.
   - Branch tracking di lokal dan remote sinkron.
+
+## [2026-03-30 15:31] - Track .env file di git untuk branch-specific configuration
+- Agent: GitHub Copilot
+- Working Branch: main (final), dev/qwen2.5, dev/llama3.2
+- Ringkasan:
+  - Hapus `.env` dari `.gitignore` di semua branch (`main`, `dev/llama3.2`, `dev/qwen2.5`).
+  - Track `.env` ke git repository dengan konfigurasi branch-specific:
+    - `dev/llama3.2`: OLLAMA_MODEL=llama3.2:latest, RAG_MODEL_ALIAS=llama3.2-rag
+    - `dev/qwen2.5`: OLLAMA_MODEL=qwen2.5:1.5b, RAG_MODEL_ALIAS=qwen2.5-rag
+    - `main`: Default OLLAMA_MODEL=qwen2.5:1.5b, RAG_MODEL_ALIAS=qwen2.5-rag
+  - Commit dan push di ketiga branch ke GitHub.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/.gitignore (di ketiga branch)
+  - /home/hreen/Documents/Magang/ecoAi-llm/.env (di ketiga branch dengan konfigurasi berbeda)
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user untuk track .env di git karena konfigurasi berbeda per branch, sehingga lebih mudah untuk switch branch dan punya environment yang sesuai.
+- Dampak:
+  - Developer tidak perlu manual update .env ketika switch branch.
+  - Konfigurasi model, RAG, dan API key sudah ter-sync dengan branch.
+  - Environment setup lebih konsisten cross-team.
+- Verifikasi:
+  - `dev/llama3.2` branch commit: 3bd4300, .env tracked dengan llama3.2 config
+  - `dev/qwen2.5` branch commit: 34d0e3b, .env tracked dengan qwen2.5 config
+  - `main` branch commit: e44ea62, .env tracked dengan default qwen2.5 config
+  - Semua branch sudah di-push ke GitHub dengan .env tertrack.
+  - `git branch -a` menampilkan tracking info yang konsisten di ketiga branch.
