@@ -337,3 +337,30 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
 - Verifikasi:
   - `docker compose exec ollama ollama list` menampilkan `llama3.2:latest`.
   - `curl -s http://localhost:8080/health` menampilkan `ollama_model":"llama3.2"` dan `rag_model_alias":"llama3.2-rag"`.
+
+## [2026-03-30 15:28] - Rename branch dev/qwen2.5 menjadi dev/llama3.2
+- Agent: GitHub Copilot
+- Working Branch: dev/HuggingFace
+- Ringkasan:
+  - Commit semua perubahan migration model llama3.2 di branch `dev/HuggingFace`.
+  - Rename branch lokal `dev/qwen2.5` menjadi `dev/llama3.2`.
+  - Delete branch `dev/qwen2.5` dari remote dan push branch `dev/llama3.2` ke GitHub.
+  - Push commit di `dev/HuggingFace` ke remote.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/.env (perubahan model)
+  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example (perubahan model)
+  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/config.py (perubahan model, metadata extraction)
+  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py (dynamic metadata functions)
+  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/bootstrap.sh (perubahan model)
+  - /home/hreen/Documents/Magang/ecoAi-llm/README.md (perubahan dokumentasi model)
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user untuk mengganti nama branch sesuai model default yang sekarang dipakai (llama3.2 bukan qwen2.5).
+- Dampak:
+  - Git history branch sekarang mencerminkan model yang dipakai.
+  - Branch management lebih konsisten dan mudah dipahami.
+  - Semua commits di `dev/HuggingFace` tersimpan untuk future reference.
+- Verifikasi:
+  - `git branch -a` menampilkan `dev/llama3.2` di lokal dan `remotes/origin/dev/llama3.2` di remote.
+  - `dev/qwen2.5` sudah tidak ada di lokal dan remote.
+  - `dev/HuggingFace` tetap ada dengan commit terakhir dari model migration.
+  - Branch tracking: saat ini bekerja di `dev/HuggingFace`, siap untuk operasi berikutnya.
