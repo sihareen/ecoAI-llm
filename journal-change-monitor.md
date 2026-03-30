@@ -474,3 +474,17 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
     - `dev/qwen2.5` → OLLAMA_MODEL=qwen2.5:1.5b ✅
     - `main` → OLLAMA_MODEL=qwen2.5:1.5b ✅
   - Upstream tracking fixed: `dev/llama3.2` → `origin/dev/llama3.2`, `dev/qwen2.5` → `origin/dev/qwen2.5`
+
+## [2026-03-30 15:55] - Sinkronisasi script runtime switch ke branch main
+- Agent: GitHub Copilot
+- Working Branch: main
+- Ringkasan:
+  - Menambahkan `scripts/run-current-branch.sh` agar branch utama juga mendukung workflow pindah branch + satu script.
+  - Script membaca `.env` branch aktif, pull model, rebuild service, dan health check retry.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/run-current-branch.sh
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menyamakan tooling runtime di semua branch kerja.
+- Dampak: `main` kini punya script operasional yang sama dengan branch development.
+- Verifikasi:
+  - `ls -l scripts/run-current-branch.sh` menunjukkan file executable.
