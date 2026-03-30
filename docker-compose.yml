@@ -1,0 +1,74 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ecoai-ollama
+    cpus: "3.0"
+    mem_limit: 6g
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:0.6.3
+    container_name: ecoai-chromadb
+    cpus: "0.25"
+    mem_limit: 512m
+    ports:
+      - "8000:8000"
+    environment:
+      IS_PERSISTENT: "TRUE"
+      ALLOW_RESET: "TRUE"
+    volumes:
+      - chroma_data:/chroma/chroma
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: ecoai-orchestrator
+    cpus: "0.25"
+    mem_limit: 512m
+    depends_on:
+      - ollama
+      - chromadb
+    ports:
+      - "8080:8080"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      RAG_MODEL_ALIAS: ${RAG_MODEL_ALIAS}
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: "8000"
+      CHROMA_COLLECTION: ${CHROMA_COLLECTION}
+      DATASET_PATH: ${DATASET_PATH}
+      TOP_K: ${TOP_K}
+      MAX_HISTORY_MESSAGES: ${MAX_HISTORY_MESSAGES}
+      MAX_CONTEXT_DISTANCE: ${MAX_CONTEXT_DISTANCE}
+    volumes:
+      - ./datasets:/workspace/datasets
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ecoai-open-webui
+    cpus: "0.5"
+    mem_limit: 1g
+    depends_on:
+      - orchestrator
+    ports:
+      - "3000:8080"
+    environment:
+      OLLAMA_BASE_URL: http://orchestrator:8080
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+    volumes:
+      - openwebui_data:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  openwebui_data:
+  chroma_data:
