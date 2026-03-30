@@ -398,3 +398,26 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
   - `git push -u origin dev/HuggingFace dev/qwen2.5` sukses.
   - `git remote show origin` menampilkan `HEAD branch: main`.
   - `git branch -r` menampilkan hanya `origin/main`, `origin/dev/HuggingFace`, `origin/dev/qwen2.5`.
+
+## [2026-03-30 15:29] - Swap nama branch: dev/HuggingFace ↔ dev/llama3.2 + rename ke dev/qwen2.5
+- Agent: GitHub Copilot
+- Working Branch: main (untuk melakukan rename operasi)
+- Ringkasan:
+  - Rename branch `dev/llama3.2` → `_temp` (temporary)
+  - Rename branch `dev/HuggingFace` → `dev/llama3.2`
+  - Rename branch `_temp` → `dev/qwen2.5`
+  - Delete remote branches lama: `origin/dev/HuggingFace`, `origin/dev/llama3.2`
+  - Push branch baru ke remote: `origin/dev/llama3.2`, `origin/dev/qwen2.5`
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user untuk swap nama branch agar lebih menggambarkan status repository (dev/HuggingFace → dev/llama3.2, dev/llama3.2 → dev/qwen2.5).
+- Dampak:
+  - Branch naming sekarang mencerminkan history dan pengembangan model:
+    - `dev/llama3.2`: development branch dari migration llama3.2 (sebelumnya dev/HuggingFace)
+    - `dev/qwen2.5`: legacy development branch dengan model qwen2.5 (sebelumnya dev/llama3.2)
+  - Struktur repository lebih jelas dan terorganisir.
+- Verifikasi:
+  - `git branch -a` menampilkan lokal: `dev/llama3.2`, `dev/qwen2.5`, `main`
+  - `git branch -a` menampilkan remote: `remotes/origin/dev/llama3.2`, `remotes/origin/dev/qwen2.5`, `remotes/origin/main`
+  - Branch lama di remote berhasil dihapus.
+  - Branch tracking di lokal dan remote sinkron.
