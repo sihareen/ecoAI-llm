@@ -447,3 +447,30 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
   - `main` branch commit: e44ea62, .env tracked dengan default qwen2.5 config
   - Semua branch sudah di-push ke GitHub dengan .env tertrack.
   - `git branch -a` menampilkan tracking info yang konsisten di ketiga branch.
+
+## [2026-03-30 15:33] - Fix: Restore correct model configuration per branch
+- Agent: GitHub Copilot
+- Working Branch: main (final), dev/qwen2.5, dev/llama3.2
+- Ringkasan:
+  - Identifikasi masalah: branch `dev/qwen2.5` menggunakan model `llama3.2:latest` padahal seharusnya `qwen2.5:1.5b`.
+  - Perbaiki `.env` di branch `dev/qwen2.5` dengan model `qwen2.5:1.5b` yang sesuai.
+  - Verifikasi dan push ke remote.
+  - Set upstream tracking yang benar untuk kedua dev branch.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/.env (di branch dev/qwen2.5)
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Setiap branch harus menggunakan model yang sesuai dengan namanya:
+  - `dev/llama3.2` → model llama3.2:latest
+  - `dev/qwen2.5` → model qwen2.5:1.5b
+  - `main` → model qwen2.5:1.5b (default legacy)
+- Dampak:
+  - Konsistensi model per branch terjaga.
+  - Konfusi model sudah dihilangkan.
+  - Developer bisa yakin bahwa switch branch juga switch model yang tepat.
+- Verifikasi:
+  - `dev/qwen2.5` branch commit: 16c4ea1, .env di-restore dengan qwen2.5:1.5b
+  - Verifikasi di ketiga branch:
+    - `dev/llama3.2` → OLLAMA_MODEL=llama3.2:latest ✅
+    - `dev/qwen2.5` → OLLAMA_MODEL=qwen2.5:1.5b ✅
+    - `main` → OLLAMA_MODEL=qwen2.5:1.5b ✅
+  - Upstream tracking fixed: `dev/llama3.2` → `origin/dev/llama3.2`, `dev/qwen2.5` → `origin/dev/qwen2.5`
