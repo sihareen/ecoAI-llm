@@ -364,3 +364,22 @@ File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
   - `dev/qwen2.5` sudah tidak ada di lokal dan remote.
   - `dev/HuggingFace` tetap ada dengan commit terakhir dari model migration.
   - Branch tracking: saat ini bekerja di `dev/HuggingFace`, siap untuk operasi berikutnya.
+
+## [2026-03-30 15:52] - Penambahan script aktivasi runtime berdasarkan branch aktif
+- Agent: GitHub Copilot
+- Working Branch: dev/llama3.2
+- Ringkasan:
+  - Menambahkan script `scripts/run-current-branch.sh` untuk workflow: pindah branch lalu jalankan satu command.
+  - Script membaca branch aktif + `.env`, validasi kecocokan model terhadap branch, pull model, rebuild/restart service, lalu health check.
+  - Menambahkan retry health check agar tidak gagal karena race condition startup container.
+- File terdampak:
+  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/run-current-branch.sh
+  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
+- Alasan: Menindaklanjuti permintaan user agar cukup pindah branch lalu jalankan satu script untuk mengaktifkan environment branch tersebut.
+- Dampak:
+  - Operasional branch switch lebih cepat dan minim error manual.
+  - Konsistensi runtime meningkat karena setup container terstandarisasi.
+- Verifikasi:
+  - Menjalankan `scripts/run-current-branch.sh` di `dev/llama3.2` berhasil.
+  - Output health endpoint valid dengan `ollama_model=llama3.2:latest`.
+  - Retry health check terbukti menangani startup delay orchestrator.
