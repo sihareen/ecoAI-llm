@@ -603,7 +603,7 @@ def ollama_compatible_chat(request: ChatRequest):
     use_rag = _is_rag_model(model_name)
 
     history_turns = _extract_openwebui_turns(request.messages)
-    if use_rag and history_turns:
+    if use_rag and history_turns and not settings.simple_rag_mode:
         try:
             active_pipeline.sync_session_history(session_id=session_id, turns=history_turns)
         except Exception:  # pylint: disable=broad-except

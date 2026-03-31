@@ -122,6 +122,27 @@ class RAGPipeline:
 """.strip()
         )
         self.answer_chain = self.prompt | self.llm
+        self.simple_prompt = ChatPromptTemplate.from_template(
+            """
+    [ROLE]
+    Grounded retrieval assistant.
+
+    [SYSTEM_POLICY]
+    {system_policy}
+
+    [RULES]
+    - Answer only from CONTEXT below.
+    - If context is insufficient, answer exactly: I don't know.
+    - Keep answer concise.
+
+    [CONTEXT]
+    {context}
+
+    [QUESTION]
+    {question}
+""".strip()
+        )
+        self.simple_answer_chain = self.simple_prompt | self.llm
 
         self.tool_plan_prompt = ChatPromptTemplate.from_template(
             """
@@ -419,7 +440,91 @@ class RAGPipeline:
             deduped.append(meta)
         return deduped
 
+    def _simple_retrieve(self, query: str) -> list[dict]:
+        vector_store = self.vector_stores[settings.chroma_knowledge_collection]
+        vector_hits = vector_store.similarity_search_with_relevance_scores(
+            query,
+            k=max(1, settings.simple_retrieval_k),
+        )
+
+        ranked_hits: list[dict] = []
+        for doc, score in vector_hits:
+            normalized_score = max(0.0, float(score))
+            if normalized_score < settings.anti_hallucination_min_score:
+                continue
+            ranked_hits.append(
+                {
+                    "doc": doc,
+                    "score": normalized_score,
+                }
+            )
+
+        return ranked_hits
+
+    def _ask_simple(self, question: str, session_id: str = "default") -> dict:
+        question_clean = question.strip()[: settings.max_question_chars]
+        ranked_hits = self._simple_retrieve(question_clean)
+        docs = [item["doc"] for item in ranked_hits]
+        context = self._truncate(self._build_context(docs), settings.max_context_chars)
+
+        if len(docs) < settings.anti_hallucination_min_docs or not context.strip():
+            return {
+                "question": question_clean,
+                "answer": UNKNOWN_ANSWER,
+                "session_id": session_id,
+                "intent": settings.chroma_knowledge_collection,
+                "sources": [],
+                "confidence": 0.0,
+                "retrieval_status": "rejected_low_confidence",
+                "memory": {
+                    "short_term_turns": 0,
+                    "long_term_hits": 0,
+                },
+                "tool_call": {
+                    "use_tool": False,
+                    "tool_name": "none",
+                    "tool_input": "",
+                    "reason": "Simple mode disables tool layer",
+                },
+                "tool_execution": None,
+            }
+
+        answer = self.simple_answer_chain.invoke(
+            {
+                "system_policy": settings.system_prompt_enforcement,
+                "context": context,
+                "question": question_clean,
+            }
+        )
+        answer_text = str(answer)
+        top_confidence = max((float(item["score"]) for item in ranked_hits), default=0.0)
+        sources = self._dedupe_sources([doc.metadata for doc in docs])
+
+        return {
+            "question": question_clean,
+            "answer": answer_text,
+            "session_id": session_id,
+            "intent": settings.chroma_knowledge_collection,
+            "sources": sources,
+            "confidence": round(top_confidence, 4),
+            "retrieval_status": "accepted",
+            "memory": {
+                "short_term_turns": 0,
+                "long_term_hits": 0,
+            },
+            "tool_call": {
+                "use_tool": False,
+                "tool_name": "none",
+                "tool_input": "",
+                "reason": "Simple mode disables tool layer",
+            },
+            "tool_execution": None,
+        }
+
     def ask(self, question: str, session_id: str = "default") -> dict:
+        if settings.simple_rag_mode:
+            return self._ask_simple(question, session_id=session_id)
+
         question_clean = question.strip()[: settings.max_question_chars]
         intent = self._classify_intent(question_clean)
         rewritten_query = self._rewrite_query(question_clean)

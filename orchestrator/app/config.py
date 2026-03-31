@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     hybrid_top_k: int = 4
     hybrid_vector_weight: float = 0.45
     hybrid_keyword_weight: float = 0.55
+    simple_rag_mode: bool = True
+    simple_retrieval_k: int = 4
 
     anti_hallucination_min_score: float = 0.22
     anti_hallucination_min_docs: int = 1
