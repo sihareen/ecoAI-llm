@@ -1,67 +1,169 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: ecoai-ollama
+    init: true
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    networks:
+      - rag_net
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      interval: 20s
+      timeout: 8s
+      retries: 10
+      start_period: 30s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
+
+  ollama-pull:
+    image: curlimages/curl:8.8.0
+    init: true
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c '
+      set -e;
+      until curl -s http://ollama:11434/api/tags >/dev/null; do
+        echo "Waiting for Ollama...";
+        sleep 2;
+      done;
+      echo "Pulling phi3:mini";
+      curl -s http://ollama:11434/api/pull -d "{\"name\":\"phi3:mini\"}";
+      echo "Pulling qwen2.5:7b (legacy fallback)";
+      curl -s http://ollama:11434/api/pull -d "{\"name\":\"qwen2.5:7b\"}";
+      echo "Pulling nomic-embed-text";
+      curl -s http://ollama:11434/api/pull -d "{\"name\":\"nomic-embed-text\"}";
+      echo "Model pull complete.";
+      '
+    networks:
+      - rag_net
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+    restart: "no"
 
   chromadb:
-    image: chromadb/chroma:0.6.3
-    container_name: ecoai-chromadb
+    image: chromadb/chroma:0.5.5
+    init: true
     ports:
-      - "8000:8000"
-    environment:
-      IS_PERSISTENT: "TRUE"
-      ALLOW_RESET: "TRUE"
+      - "127.0.0.1:8000:8000"
     volumes:
       - chroma_data:/chroma/chroma
+    networks:
+      - rag_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/heartbeat', timeout=3)"]
+      interval: 20s
+      timeout: 8s
+      retries: 10
+      start_period: 20s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
-  orchestrator:
+  app:
     build:
       context: ./orchestrator
       dockerfile: Dockerfile
-    container_name: ecoai-orchestrator
+    init: true
     depends_on:
-      - ollama
-      - chromadb
-    ports:
-      - "8080:8080"
+      chromadb:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
-      RAG_MODEL_ALIAS: ${RAG_MODEL_ALIAS}
-      ORIGINAL_MODEL_ALIAS: ${ORIGINAL_MODEL_ALIAS}
+      OLLAMA_MODEL: phi3:mini
+      OLLAMA_FALLBACK_MODEL: qwen2.5:7b
+      OLLAMA_EMBED_MODEL: nomic-embed-text
+      RAG_GATEWAY_MODEL_ALIAS: phi3-rag:mini
+      NON_RAG_GATEWAY_MODEL_ALIAS: phi3-direct:mini
+      LEGACY_RAG_GATEWAY_MODEL_ALIAS: qwen2.5-rag:7b
+      LEGACY_NON_RAG_GATEWAY_MODEL_ALIAS: qwen2.5-direct:7b
       CHROMA_HOST: chromadb
       CHROMA_PORT: "8000"
-      CHROMA_COLLECTION: ${CHROMA_COLLECTION}
-      DATASET_PATH: ${DATASET_PATH}
-      TOP_K: ${TOP_K}
-      MAX_HISTORY_MESSAGES: ${MAX_HISTORY_MESSAGES}
-      MAX_CONTEXT_DISTANCE: ${MAX_CONTEXT_DISTANCE}
+      DATASET_AUTO_INGEST_ENABLED: "true"
+      DATASET_JSONL_PATH: "/app/datasets/Opus4.6_reasoning_887x.jsonl"
+      DATASET_JSONL_GLOB: "/app/datasets/*.jsonl"
+      DATASET_INGEST_BATCH_SIZE: "64"
+      SEED_CHUNK_SIZE: "500"
+      SEED_CHUNK_OVERLAP: "80"
+      DATASET_CHUNK_SIZE: "650"
+      DATASET_CHUNK_OVERLAP: "120"
+      RETRIEVAL_CONTEXT_CHUNK_SIZE: "420"
+      RETRIEVAL_CONTEXT_CHUNK_OVERLAP: "60"
+      RETRIEVAL_MAX_CONTEXT_CHUNKS: "8"
+      STREAM_CHUNK_CHARS: "120"
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8080"
+      APP_WORKERS: "1"
+      CACHE_MAX_SIZE: "512"
+      MAX_CONTEXT_CHARS: "2600"
+      MEMORY_STORE_MAX_CHARS: "500"
+      UI_NO_DATA_MESSAGE: "No data found."
     volumes:
-      - ./datasets:/workspace/datasets
+      - ./datasets:/app/datasets:ro
+    command: >
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8080 --workers $${APP_WORKERS:-1}"
+    ports:
+      - "127.0.0.1:8081:8080"
+    networks:
+      - rag_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
-    container_name: ecoai-open-webui
+    init: true
     depends_on:
-      - orchestrator
-    ports:
-      - "3000:8080"
+      app:
+        condition: service_healthy
     environment:
-      OLLAMA_BASE_URL: http://orchestrator:8080
-      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+      OLLAMA_BASE_URL: http://app:8080
+      WEBUI_AUTH: "False"
+    ports:
+      - "127.0.0.1:3000:8080"
     volumes:
-      - openwebui_data:/app/backend/data
+      - open_webui_data:/app/backend/data
+    networks:
+      - rag_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 20s
+      timeout: 8s
+      retries: 10
+      start_period: 30s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
 volumes:
   ollama_data:
-  openwebui_data:
   chroma_data:
+  open_webui_data:
+
+networks:
+  rag_net:
+    driver: bridge

@@ -1,385 +1,349 @@
 # Journal Change Monitor
 
-File ini adalah memori perubahan untuk semua AI agent di project `ecoAi-llm`.
+Dokumen ini adalah sumber utama monitoring perubahan pada branch aktif.
+Semua perubahan pada branch harus dicatat di file ini.
 
-## Aturan Wajib
-- Setiap perubahan file, konfigurasi, dependency, service, dan struktur project wajib dicatat.
-- Catat perubahan setelah selesai dilakukan.
-- Jangan hapus riwayat lama; jika ada koreksi, tambah entri baru.
-- Gunakan waktu lokal `Asia/Jakarta` dengan format `YYYY-MM-DD HH:MM`.
+## Branch Scope
 
-## Format Entri
-```md
-## [YYYY-MM-DD HH:MM] - Judul Perubahan
-- Agent: Codex
-- Ringkasan: <apa yang diubah>
-- File terdampak:
-  - /path/file-1
-- Alasan: <kenapa>
-- Dampak: <efek>
-- Verifikasi: <hasil cek>
-- Catatan lanjutan: <opsional>
-```
+- Branch aktif: dev
+- Tujuan: melacak riwayat commit + perubahan working tree yang belum di-commit
 
-## Riwayat
+## Commit History (Branch Timeline)
 
-## [2026-03-30 10:53] - Recreate project dan setup Docker baseline
-- Agent: Codex
-- Ringkasan: Membuat ulang struktur `ecoAi-llm` dan setup docker untuk Ollama, Open WebUI, ChromaDB, serta orchestrator LangChain (model default qwen 1.5b).
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/docker-compose.yml
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/Dockerfile
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/requirements.txt
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/bootstrap.sh
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-  - /home/hreen/Documents/Magang/ecoAi-llm/datasets/Claude-Opus-4.6-Reasoning-887x
-- Alasan: Menyiapkan pondasi project sesuai spesifikasi user.
-- Dampak: Stack siap dijalankan via Docker Compose.
-- Verifikasi: Akan divalidasi dengan `docker compose config`.
+1. f7c0110 - Initial commit: ecoAI-llm RAG stack
+2. 7472d77 - docs: log GitHub publish activity
+3. ef1738b - chore: migrate model to llama3.2 and generalize metadata extraction
+4. ec8aaef - docs: record branch rename from dev/qwen2.5 to dev/llama3.2
+5. 3bd4300 - chore: track .env in git - allows branch-specific configuration
+6. 4ef519f - feat: add branch-aware runtime switch script
 
-## [2026-03-30 11:04] - Instalasi dan start service Ollama via Docker Compose
-- Agent: Codex
-- Ringkasan: Menjalankan docker compose up -d ollama untuk install image dan menyalakan container Ollama.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk mulai instalasi Ollama di Docker project ini.
-- Dampak: Service ecoai-ollama aktif di port 11434.
+## Working Tree Snapshot (2026-03-31)
+
+### Modified
+
+- datasets/Opus4.6_reasoning_887x.jsonl
+- docker-compose.yml
+- journal-change-monitor.md
+- orchestrator/Dockerfile
+- orchestrator/app/config.py
+- orchestrator/app/main.py
+- orchestrator/app/rag_pipeline.py
+- orchestrator/requirements.txt
+
+### Deleted
+
+- .env
+- .env.example
+- .gitignore
+- README.md
+- orchestrator/app/dataset_parser.py
+- scripts/bootstrap.sh
+- scripts/ingest_data.py
+- scripts/run-current-branch.sh
+
+### Untracked
+
+- .github/
+- datasets/claude-opus-4.5-250x.jsonl
+- datasets/dataset.jsonl
+- datasets/gpt-5.1-1000x.jsonl
+- datasets/reasoning_distill_data.jsonl
+- orchestrator/app/agent_tools.py
+- orchestrator/app/evaluation.py
+- orchestrator/app/__init__.py
+- orchestrator/app/__pycache__/
+- orchestrator/app/memory.py
+- orchestrator/app/vector_store.py
+- orchestrator/data/
+
+## Update Rules (Mandatory)
+
+1. Sebelum pekerjaan dimulai, agent wajib membaca file ini.
+2. Setelah perubahan file apa pun, agent wajib menambah entri baru di bagian Log Entries.
+3. Setiap entri harus mencakup tanggal, ringkasan perubahan, dan daftar file.
+4. Jika ada perubahan status file (modified/deleted/untracked), snapshot harus diperbarui.
+
+## Log Entries
+
+### 2026-03-30
+
+- Recreate monitor journal untuk tracking branch dan snapshot perubahan saat ini.
+- Menambahkan aturan wajib baca-jurnal sebelum aksi agent dilakukan.
+- File terkait:
+  - journal-change-monitor.md
+  - .github/copilot-instructions.md
+
+### 2026-03-30 (Query Rewriting Upgrade)
+
+- Menambahkan query rewriting layer internal di pipeline sebelum retrieval.
+- Rewritten query dipakai hanya untuk retriever dan tidak dikembalikan ke user.
+- Menambahkan prompt template rewriting yang ringkas dan retrieval-friendly.
+- File terkait:
+  - orchestrator/app/rag_pipeline.py
+  - journal-change-monitor.md
+
+### 2026-03-30 (Multi-Index RAG Upgrade)
+
+- Menambahkan dukungan tiga koleksi ChromaDB: knowledge_base, reasoning_traces, tool_examples.
+- Refactor vector store builder menjadi multi-collection dan seed per koleksi dari file data terpisah.
+- Menambahkan intent classification berbasis LLM + fallback keyword untuk query routing.
+- Menambahkan retriever routing agar retrieval berjalan ke koleksi sesuai intent query.
+- Menambah seed data awal untuk reasoning_traces dan tool_examples.
+- File terkait:
+  - orchestrator/app/config.py
+  - orchestrator/app/vector_store.py
+  - orchestrator/app/rag_pipeline.py
+  - orchestrator/data/reasoning_traces.txt
+  - orchestrator/data/tool_examples.txt
+  - journal-change-monitor.md
+
+### 2026-03-30 (Multi-Index Routing Fix)
+
+- Memperbaiki indentasi blok `intent_prompt` di `RAGPipeline.__init__` agar inisialisasi chain klasifikasi intent valid saat runtime.
+- File terkait:
+  - orchestrator/app/rag_pipeline.py
+  - journal-change-monitor.md
+
+### 2026-03-30 (Hybrid Search Upgrade)
+
+- Menambahkan Hybrid Search: gabungan vector search + keyword search pada koleksi intent terpilih.
+- Menambahkan tahap merge deduplikasi hasil retrieval dari dua jalur pencarian.
+- Menambahkan reranking berbasis skor gabungan berbobot sebelum context dikirim ke LLM.
+- Menambahkan parameter konfigurasi hybrid untuk top-k dan bobot vector/keyword.
+- File terkait:
+  - orchestrator/app/config.py
+  - orchestrator/app/vector_store.py
+  - orchestrator/app/rag_pipeline.py
+  - journal-change-monitor.md
+
+### 2026-03-31 (Anti-Hallucination Upgrade)
+
+- Menambahkan threshold filtering pada skor similarity hybrid retrieval.
+- Menolak retrieval dengan confidence rendah sebelum masuk ke tahap generation.
+- Menambahkan fallback paksa jawaban `I don't know.` saat konteks tidak memadai.
+- Memperbarui prompt generation agar model tidak menggunakan pengetahuan di luar context.
+- Menambahkan metadata confidence dan retrieval_status pada response untuk observability.
+- Menyegarkan tanggal snapshot working tree ke 2026-03-31.
+- File terkait:
+  - orchestrator/app/config.py
+  - orchestrator/app/rag_pipeline.py
+  - journal-change-monitor.md
+
+### 2026-03-31 (Memory System Upgrade)
+
+- Menambahkan short-term conversation buffer per `session_id` menggunakan deque in-memory.
+- Menambahkan long-term conversation memory pada collection ChromaDB `conversation_memory`.
+- Menambahkan retrieval memori long-term berbasis semantic similarity + threshold relevance.
+- Mengintegrasikan memory context (short-term + long-term) ke prompt generation ketika relevan.
+- Menambahkan `session_id` pada endpoint `/ask` untuk menjaga kontinuitas percakapan lintas turn.
+- Menyimpan setiap pasangan tanya-jawab ke buffer jangka pendek dan ke vector DB sebagai memory jangka panjang.
+- Menyempurnakan penyimpanan long-term memory menggunakan `add_texts` agar implementasi lebih ringan dan stabil.
+- File terkait:
+  - orchestrator/app/config.py
+  - orchestrator/app/vector_store.py
+  - orchestrator/app/memory.py
+  - orchestrator/app/rag_pipeline.py
+  - orchestrator/app/main.py
+  - journal-change-monitor.md
+
+### 2026-03-31 (Agent Tool Simulation Upgrade)
+
+- Menambahkan struktur tool-calling agent: planner -> simulator -> hasil tool ke prompt answer.
+- Menambahkan antarmuka tool simulation untuk `web_search`, `calculator`, dan `api_call`.
+- Menambahkan prompt perencana tool berbasis LLM dengan output JSON terstruktur.
+- Menambahkan fallback heuristic jika output planner tidak valid.
+- Menggunakan tool trace examples dari koleksi `tool_examples` sebagai konteks perencanaan tool.
+- Menambahkan metadata `tool_call` dan `tool_execution` pada respons untuk observability reasoning.
+- Memperbaiki indentasi inisialisasi `tool_plan_prompt` agar aman saat runtime startup.
+- File terkait:
+  - orchestrator/app/agent_tools.py
+  - orchestrator/app/rag_pipeline.py
+  - orchestrator/app/config.py
+  - journal-change-monitor.md
+
+### 2026-03-31 (Evaluation System Upgrade)
+
+- Menambahkan benchmark dataset evaluasi dengan tiga kategori: factual, reasoning, hallucination.
+- Menambahkan pipeline evaluasi untuk menjalankan benchmark secara otomatis terhadap pipeline RAG.
+- Menambahkan metrik evaluasi: faithfulness, relevance, correctness, serta agregasi overall.
+- Menambahkan endpoint `/evaluate` untuk menjalankan benchmark dan `/evaluate/compare` untuk membandingkan report model.
+- Menambahkan fungsi komparasi report baseline vs candidate berbasis delta per metrik dan per kategori.
+- File terkait:
+  - orchestrator/data/eval_benchmark.json
+  - orchestrator/app/evaluation.py
+  - orchestrator/app/main.py
+  - journal-change-monitor.md
+
+### 2026-03-31 (Full System Optimization)
+
+- Menambahkan optimasi latency pada pipeline: fast-path heuristic untuk intent/tool, cache internal untuk rewrite/intent/tool plan, dan chain reuse.
+- Menambahkan optimasi memori: trimming context/prompt sections dan pembatasan ukuran memory turn yang disimpan.
+- Menambahkan optimasi prompt untuk model kecil (Qwen 2.5 7B): prompt dipadatkan agar token lebih efisien.
+- Menambahkan tuning Docker scalability pada service app: configurable worker count, healthcheck, dan env tuning untuk cache/context.
+- Menambahkan deduplikasi sumber metadata pada response untuk menekan payload.
+- Melakukan perbaikan indentasi runtime pada `rag_pipeline.py` setelah refactor optimasi.
+- File terkait:
+  - orchestrator/app/rag_pipeline.py
+  - orchestrator/app/config.py
+  - orchestrator/app/memory.py
+  - docker-compose.yml
+  - journal-change-monitor.md
+
+### 2026-03-31 (Open WebUI Integration)
+
+- Menambahkan service `open-webui` sebagai frontend utama pada Docker Compose.
+- Menghubungkan Open WebUI ke Ollama melalui `OLLAMA_BASE_URL=http://ollama:11434`.
+- Menambahkan volume persistensi data Open WebUI (`open_webui_data`).
+- Memastikan model `qwen2.5:7b` tersedia di Ollama agar selectable di UI.
 - Verifikasi:
-  - docker ps menampilkan ecoai-ollama dengan status Up.
-  - curl ke endpoint localhost:11434/api/tags mengembalikan JSON models kosong.
+  - Open WebUI sehat di `http://localhost:3000` (HTTP 200).
+  - Endpoint tags Ollama menampilkan `qwen2.5:7b`.
+  - Uji `POST /api/generate` ke Ollama berhasil mengembalikan respons.
+- Catatan: Integrasi ini hanya untuk jalur UI -> Ollama (tanpa integrasi RAG ke UI).
+- File terkait:
+  - docker-compose.yml
+  - journal-change-monitor.md
 
-## [2026-03-30 11:08] - Pull model qwen2.5:1.5b ke Ollama
-- Agent: Codex
-- Ringkasan: Menjalankan pull model qwen2.5:1.5b pada service Ollama yang sudah aktif.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti persetujuan user untuk memasang model default orchestrator.
-- Dampak: Model qwen2.5:1.5b tersedia untuk inferensi lokal.
+### 2026-03-31 (Open WebUI Routed to RAG Backend API)
+
+- Menambahkan layer API kompatibel Open WebUI/Ollama pada backend FastAPI (`/api/tags`, `/api/show`, `/api/version`, `/api/chat`, `/api/generate`).
+- Mengarahkan Open WebUI agar memanggil backend `app` (bukan Ollama langsung) melalui `OLLAMA_BASE_URL=http://app:8080`.
+- Menjaga jalur backend tetap memproses query dengan pipeline: rewrite -> retrieval -> reasoning -> final answer.
+- Menambahkan alias model gateway `qwen2.5-rag:7b` agar selectable di UI.
+- Memperbaiki konflik dependency build app dengan menyesuaikan `chromadb==0.5.3` di requirements.
+- Menyesuaikan mapping port host backend ke `8081:8080` untuk menghindari konflik dengan container lama.
 - Verifikasi:
-  - ollama list menampilkan qwen2.5:1.5b ukuran 986 MB.
-  - endpoint localhost:11434/api/tags menampilkan model qwen2.5:1.5b.
+  - `GET /api/tags` backend mengembalikan model alias gateway.
+  - `POST /api/chat` backend mengembalikan format respons kompatibel Open WebUI.
+  - Open WebUI sehat dan terhubung ke backend (`OLLAMA_BASE_URL=http://app:8080`).
+- File terkait:
+  - orchestrator/app/main.py
+  - orchestrator/app/config.py
+  - orchestrator/requirements.txt
+  - docker-compose.yml
+  - journal-change-monitor.md
 
-## [2026-03-30 11:09] - Pembatasan resource project (50% CPU dan 8GB RAM)
-- Agent: Codex
-- Ringkasan: Menambahkan limit CPU dan memori di seluruh service docker-compose agar total alokasi project dibatasi.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/docker-compose.yml
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk membatasi pemakaian resource project.
-- Dampak:
-  - Total limit project: 4 CPU dan 8GB RAM (host terdeteksi 8 core, jadi 50% = 4 core).
-  - Distribusi: ollama 3 CPU/6GB, open-webui 0.5 CPU/1GB, chromadb 0.25 CPU/512MB, orchestrator 0.25 CPU/512MB.
+### 2026-03-31 (Open WebUI Conversation Memory Integration)
+
+- Menambahkan mapping session Open WebUI -> backend session yang lebih stabil menggunakan prioritas `session_id/chat_id/conversation_id/id`, nested metadata/options, dan fallback fingerprint percakapan.
+- Menambahkan sinkronisasi history chat Open WebUI ke short-term memory backend sebelum query diproses agar konteks percakapan langsung dipakai pada turn yang sama.
+- Menambahkan mekanisme import history ke long-term memory ChromaDB dengan deduplikasi hash turn per session.
+- Menambahkan importance filtering untuk long-term memory agar hanya interaksi penting yang disimpan (preferensi/keputusan/informasi bernilai tinggi), sehingga noise memori berkurang.
+- Menambahkan metadata memory observability (`short_term_turns`, `long_term_hits`) pada hasil pipeline.
 - Verifikasi:
-  - docker compose config valid dan menampilkan cpus + mem_limit pada semua service.
-  - docker inspect ecoai-ollama menunjukkan NanoCPUs=3000000000 dan Memory=6442450944.
+  - Endpoint `/api/chat` mempertahankan kontinuitas jawaban saat `chat_id` diberikan.
+  - Fallback session tanpa `chat_id` tetap konsisten dan menghasilkan `session_id` deterministik.
+  - Collection `conversation_memory` menyimpan interaksi penting dengan metadata `turn_hash`.
+- File terkait:
+  - orchestrator/app/main.py
+  - orchestrator/app/rag_pipeline.py
+  - orchestrator/app/memory.py
+  - orchestrator/app/config.py
+  - journal-change-monitor.md
 
-## [2026-03-30 11:17] - Instalasi dan aktivasi Open WebUI
-- Agent: Codex
-- Ringkasan: Menjalankan docker compose up -d open-webui, menunggu inisialisasi pertama, dan memverifikasi akses UI.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti instruksi user untuk melanjutkan setup Open WebUI.
-- Dampak:
-  - Service ecoai-open-webui aktif di port 3000.
-  - Limit resource aktif pada Open WebUI: 0.5 CPU dan 1GB RAM.
+### 2026-03-31 (Open WebUI Tool Usage Reflection)
+
+- Memperbarui format respons gateway Open WebUI agar menyertakan metadata `tool_used`, `steps`, dan `confidence` pada mode non-stream maupun stream.
+- Menambahkan indikator visual aman di konten jawaban (`[Tool usage] <tool_name> (<status>)`) saat tool dipakai, tanpa mengekspos reasoning mentah.
+- Menambahkan opsi steps terstruktur pada konten jawaban melalui request option (`show_steps` atau `show_tool_steps`) agar UI dapat menampilkan langkah proses secara opsional.
+- Menambahkan sanitasi output backend untuk menghapus tag `<think>`/`<final>` dari jawaban sebelum dikirim ke UI.
 - Verifikasi:
-  - docker ps menampilkan ecoai-open-webui status running.
-  - docker inspect menampilkan NanoCPUs=500000000 dan Memory=1073741824.
-  - curl ke http://localhost:3000 mengembalikan HTTP/1.1 200 OK setelah startup selesai.
+  - `POST /api/chat` non-stream menampilkan indikator tool usage + metadata terstruktur.
+  - `POST /api/chat` stream mengirim metadata tool usage pada setiap chunk dan payload selesai.
+  - Respons yang dikirim ke UI tidak memuat raw `<think>`.
+- File terkait:
+  - orchestrator/app/main.py
+  - journal-change-monitor.md
 
-## [2026-03-30 12:27] - Implementasi penuh arsitektur RAG end-to-end
-- Agent: Codex
-- Ringkasan:
-  - Membangun orchestrator RAG lengkap (ingest parser dataset Claude, retrieval Chroma, super-prompt builder, dan generation via Ollama).
-  - Menambahkan endpoint kompatibel Open WebUI/Ollama: /api/version, /api/tags, /api/show, /api/chat, /api/generate.
-  - Mengubah routing Open WebUI agar prompt melewati orchestrator terlebih dahulu.
-  - Menyelesaikan kompatibilitas Chroma dengan pin image ke 0.6.3.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/config.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/dataset_parser.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/rag_pipeline.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/docker-compose.yml
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example
-  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/bootstrap.sh
-  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/ingest_data.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/README.md
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Mewujudkan flow RAG yang diminta user dari browser sampai generation berbasis konteks dataset Claude.
-- Dampak:
-  - Open WebUI kini menggunakan model alias gateway: qwen2.5-rag:1.5b.
-  - Dataset Opus4.6_reasoning_887x.jsonl berhasil terindeks penuh ke Chroma.
-  - Retrieval context + tag output think/final aktif pada jalur chat runtime.
+### 2026-03-31 (Open WebUI Guardrails and Trust UX)
+
+- Menambahkan validation layer di gateway Open WebUI untuk guardrail jawaban: jika retrieval gagal, model tidak yakin, atau confidence sangat rendah tanpa dukungan tool, respons dipaksa menjadi `No data found.`.
+- Menambahkan confidence indicator terstruktur (`value`, `level`, `label`) pada payload non-stream dan stream.
+- Menambahkan response scoring (`trust_score`, `hallucination_risk`) untuk observability kualitas jawaban di UI.
+- Menambahkan metadata guardrail (`status`, `reason`) agar alasan pemblokiran jawaban terlihat jelas tanpa membuka reasoning mentah.
+- Menambahkan fallback error handling ramah UI: saat pipeline error, endpoint tetap mengembalikan respons kompatibel dengan pesan aman dan metadata trust rendah.
+- Menambahkan system prompt enforcement terkonfigurasi (`system_prompt_enforcement`) dan menyuntikkannya ke chain generation untuk memperketat anti-hallucination policy.
 - Verifikasi:
-  - docker compose config valid.
-  - Semua service up: ecoai-ollama, ecoai-chromadb, ecoai-orchestrator, ecoai-open-webui (healthy).
-  - Orchestrator health menunjukkan collection_size=2591.
-  - Uji /api/chat non-stream dan stream berhasil mengembalikan format respons Ollama-kompatibel.
-  - Open WebUI merespons HTTP 200 dan OLLAMA_BASE_URL mengarah ke http://orchestrator:8080.
+  - Query retrieval-fail di `/api/chat` menghasilkan `No data found.` dengan confidence low + risk high.
+  - Query tool-success menampilkan confidence minimal medium dan skor trust menengah.
+  - Mode stream membawa confidence indicator, response score, dan metadata guardrail.
+- File terkait:
+  - orchestrator/app/main.py
+  - orchestrator/app/config.py
+  - orchestrator/app/rag_pipeline.py
+  - journal-change-monitor.md
 
-## [2026-03-30 12:31] - Penambahan dokumentasi Flow System di README
-- Agent: Codex
-- Ringkasan: Menambahkan bagian Flow System yang merinci alur offline ingest dan runtime chat RAG.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/README.md
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk dokumentasi alur sistem di README.
-- Dampak: Dokumentasi arsitektur lebih jelas untuk implementasi, debugging, dan onboarding.
-- Verifikasi:
-  - README menampilkan dua blok flow: Offline Ingest Flow dan Runtime Chat Flow.
+### 2026-03-31 (Final Docker Deployment with Open WebUI)
 
-## [2026-03-30 14:10] - Penerapan SOP cek & catat journal-change-monitor
-- Agent: Codex
-- Ringkasan: Menerapkan instruksi baru dari user untuk selalu membaca journal-change-monitor sebelum aksi apa pun, serta mencatat setiap aksi setelah selesai.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menstandarkan jejak audit perubahan agar disiplin perubahan lebih konsisten.
-- Dampak: Semua aktivitas berikutnya akan diawali validasi jurnal dan diakhiri pencatatan jurnal.
-- Verifikasi:
-  - Journal sudah dibaca terlebih dahulu pada sesi ini.
-  - Entri SOP baru berhasil ditambahkan.
-
-## [2026-03-30 12:48] - Perbaikan output duplikasi tag think/final pada respons chat
-- Agent: Codex
-- Ringkasan:
-  - Memperketat aturan system prompt agar model tidak menyalin instruksi user atau contoh prompt retrieval secara verbatim.
-  - Menambahkan normalisasi output berbasis regex untuk ekstraksi blok `<think>` dan `<final>`, sekaligus pembersihan nested/duplicate tags.
-  - Rebuild + restart service orchestrator agar patch aktif.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/rag_pipeline.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti anomali output respons yang menampilkan tag `<final>` berulang dan memantulkan template instruksi.
-- Dampak:
-  - Output respons dipaksa stabil ke format tunggal:
-    - `<think>...</think>`
-    - `<final>...</final>`
-  - Risiko duplikasi tag bertingkat berkurang signifikan pada jalur `/api/chat`.
-- Verifikasi:
-  - `docker compose up -d --build orchestrator` berhasil.
-  - `GET /health` kembali 200 OK.
-  - Uji `POST /api/chat` dengan prompt "buatkan jurnal mengenai lingkungan" mengembalikan satu blok `<think>` dan satu blok `<final>` tanpa nested duplicate tags.
-
-## [2026-03-30 12:49] - Penguatan prompt agar jawaban mengeksekusi tugas langsung
-- Agent: Codex
-- Ringkasan:
-  - Menambahkan aturan system prompt bahwa model wajib mengeksekusi permintaan user secara langsung, bukan hanya memberi outline/saran.
-  - Memperjelas format `<final>` agar berisi hasil jadi yang actionable.
-  - Redeploy orchestrator untuk mengaktifkan instruksi baru.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/rag_pipeline.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Mengurangi kecenderungan model memberi jawaban meta-instruksi ketika diminta membuat konten.
-- Dampak: Kualitas output membaik untuk mode eksekusi langsung, walau tetap bergantung pada kemampuan model 1.5B dan kualitas konteks retrieval.
-- Verifikasi:
-  - `docker compose up -d --build orchestrator` sukses.
-  - Uji `POST /api/chat` sukses dan respons tetap pada format `<think>` + `<final>`.
-
-## [2026-03-30 12:55] - Sembunyikan tag think/final dari output yang dikirim ke UI
-- Agent: Codex
-- Ringkasan:
-  - Menambahkan parser output pada gateway untuk mengekstrak isi `<final>` sebelum respons dikirim ke Open WebUI/client.
-  - Menambahkan fallback pembersihan tag `<think>/<final>` jika model tidak mematuhi format.
-  - Menerapkan perubahan pada endpoint `/api/chat` dan `/api/generate` untuk mode stream maupun non-stream.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menghilangkan tampilan tag internal reasoning di UI agar pengguna hanya melihat jawaban akhir.
-- Dampak:
-  - Respons yang tampil di Open WebUI lebih bersih dan user-friendly.
-  - Format internal `<think>/<final>` tetap bisa dipakai di backend, tapi tidak diekspos ke frontend.
-- Verifikasi:
-  - `docker compose up -d --build orchestrator` berhasil.
-  - Uji `POST /api/chat` non-stream menampilkan konten tanpa tag.
-  - Uji `POST /api/chat` stream tidak mengandung `<think>/<final>` (dicek via `rg`).
-  - Uji `POST /api/generate` non-stream menampilkan konten tanpa tag.
-
-## [2026-03-30 13:23] - Tambah opsi model Qwen RAG dan Qwen Original pada gateway
-- Agent: Codex
-- Ringkasan:
-  - Menambahkan mode dual-model di orchestrator:
-    - `qwen2.5-rag:1.5b` (melewati pipeline RAG)
-    - `qwen2.5:1.5b` (original, direct proxy ke Ollama tanpa RAG)
-  - Menambahkan proxy upstream Ollama untuk endpoint `/api/tags`, `/api/show`, `/api/chat`, dan `/api/generate` saat model non-RAG dipilih.
-  - Menambahkan konfigurasi `ORIGINAL_MODEL_ALIAS` agar alias model original bisa dikustomisasi.
-  - Menambahkan dependency `httpx` untuk proxy HTTP streaming/non-stream.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/config.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/requirements.txt
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user agar tersedia pilihan model dengan RAG dan tanpa RAG di Open WebUI.
-- Dampak:
-  - Daftar model di UI menampilkan dua opsi Qwen yang bisa dipilih sesuai kebutuhan.
-  - Jalur original mempertahankan perilaku native Ollama.
-  - Jalur RAG tetap aktif dan menjaga integrasi ChromaDB + dataset Claude.
-- Verifikasi:
-  - `GET /health` menunjukkan `original_model_alias`.
-  - `GET /api/tags` menampilkan `qwen2.5-rag:1.5b` dan `qwen2.5:1.5b`.
-  - `POST /api/chat` model `qwen2.5-rag:1.5b` berhasil (jalur RAG).
-  - `POST /api/chat` model `qwen2.5:1.5b` berhasil (jalur proxy original).
-  - `POST /api/show` model `qwen2.5:1.5b` mengembalikan metadata native dari Ollama.
-
-## [2026-03-30 13:25] - Filter model list agar hanya tampil opsi Qwen di UI
-- Agent: Codex
-- Ringkasan:
-  - Menyesuaikan logika `/api/tags` untuk memfilter model upstream agar hanya menampilkan model Qwen original + model alias RAG.
-  - Menghilangkan model non-chat seperti `nomic-embed-text` dari daftar model yang muncul di Open WebUI.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menjaga UX agar opsi model sesuai permintaan user dan tidak tercampur model embedding.
-- Dampak: Dropdown model di Open WebUI fokus ke dua opsi Qwen yang relevan.
-- Verifikasi:
-  - `GET /api/tags` sekarang hanya mengembalikan `qwen2.5-rag:1.5b` dan `qwen2.5:1.5b`.
-
-## [2026-03-30 14:11] - Pemenuhan hook penyelesaian task dan kepatuhan SOP jurnal
-- Agent: Codex
-- Ringkasan: Menyelesaikan sesi dengan alur wajib cek jurnal terlebih dahulu, lalu mencatat aksi penyelesaian sebelum menandai task complete.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti instruksi user tentang disiplin audit perubahan dan requirement hook task completion.
-- Dampak: Proses kerja terdokumentasi konsisten dari awal hingga penutupan task.
-- Verifikasi:
-  - Journal dibaca sebelum aksi lanjutan dilakukan.
-  - Entri penutupan sesi berhasil ditambahkan di journal.
-
-## [2026-03-30 14:12] - Eksekusi hook kedua untuk task completion
-- Agent: Codex
-- Ringkasan: Menindaklanjuti hook kedua dengan urutan SOP lengkap: validasi jurnal, pencatatan aksi, lalu penandaan task selesai.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Memenuhi requirement sistem bahwa task harus ditutup menggunakan tool task_complete.
-- Dampak: Sesi ditutup secara valid dan konsisten dengan aturan audit trail project.
-- Verifikasi:
-  - Journal dibaca sebelum tindakan akhir.
-  - Entri hook kedua berhasil ditambahkan.
-
-## [2026-03-30 14:12] - Eksekusi hook ketiga dan penutupan final task
-- Agent: Codex
-- Ringkasan: Menjalankan kembali SOP jurnal untuk hook ketiga, mencatat aksi final, lalu menutup task melalui tool task_complete.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Memenuhi requirement sistem yang mewajibkan task ditandai selesai secara eksplisit.
-- Dampak: Penutupan task tervalidasi dan konsisten dengan aturan audit perubahan.
-- Verifikasi:
-  - Journal dicek sebelum aksi final.
-  - Entri hook ketiga berhasil ditambahkan.
-
-## [2026-03-30 14:13] - Publikasi repository ke GitHub user
-- Agent: Codex
-- Ringkasan:
-  - Menambahkan `.gitignore` agar `.env` tidak ikut ter-push.
-  - Mengonfigurasi remote `origin` ke `https://github.com/sihareen/ecoAI-llm.git`.
-  - Membuat commit awal dan push branch `PRISCOP` ke GitHub.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/.gitignore
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-  - /home/hreen/Documents/Magang/ecoAi-llm/.git/config
-- Alasan: Menindaklanjuti permintaan user untuk menambahkan project ini ke repository GitHub.
-- Dampak:
-  - Kode project sudah tersedia di remote GitHub pada branch `PRISCOP`.
-  - File sensitif `.env` tetap aman secara lokal dan tidak masuk commit.
-- Verifikasi:
-  - `git remote -v` menampilkan `origin` dengan URL yang diminta.
-  - `git push -u origin PRISCOP` sukses dan upstream branch terpasang.
-
-## [2026-03-30 14:43] - Pelepasan batasan resource project
-- Agent: Codex
-- Ringkasan:
-  - Menghapus seluruh batasan `cpus` dan `mem_limit` dari semua service di `docker-compose.yml`.
-  - Memperbarui catatan README agar konsisten bahwa resource tidak lagi dibatasi oleh docker compose.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/docker-compose.yml
-  - /home/hreen/Documents/Magang/ecoAi-llm/README.md
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk melepas batasan yang sebelumnya diset.
-- Dampak:
-  - Seluruh service kini menggunakan resource host tanpa limit hard-coded.
-  - Dokumentasi project kembali sinkron dengan konfigurasi runtime.
+- Memfinalisasi `docker-compose.yml` untuk deployment lokal penuh dengan seluruh service Dockerized: Open WebUI, Ollama, backend LangChain/FastAPI, dan ChromaDB.
+- Menambahkan network khusus `rag_net` agar komunikasi antar service terisolasi dan stabil.
+- Menambahkan healthcheck pada Ollama, ChromaDB, app backend, dan Open WebUI.
+- Memperketat startup ordering dengan `depends_on` berbasis kondisi (`service_healthy` dan `service_completed_successfully` untuk `ollama-pull`).
+- Menambahkan persistence volume untuk model, vector DB, dan data Open WebUI.
+- Menambahkan batas logging per container (`max-size`, `max-file`) untuk menghindari pembengkakan disk di local machine.
+- Mengatur port mapping host ke loopback (`127.0.0.1`) untuk keamanan deployment lokal.
 - Verifikasi:
   - `docker compose config` valid.
-  - Tidak ada `cpus`/`mem_limit` pada output konfigurasi final.
+  - `docker compose up -d` berhasil, service utama status healthy.
+  - `docker compose up -d --remove-orphans` berhasil menghapus container legacy `ecoai-orchestrator`.
+  - `GET /health` backend app mengembalikan OK.
+  - `GET /api/tags` backend gateway mengembalikan model alias RAG.
+  - Open WebUI merespons HTTP 200 pada `localhost:3000` setelah startup selesai.
+- File terkait:
+  - docker-compose.yml
+  - journal-change-monitor.md
 
-## [2026-03-30 14:58] - Pengecekan model Ollama via command
-- Agent: Codex
-- Ringkasan: Menjalankan command untuk menampilkan model yang tersedia di service Ollama.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk mengecek model yang digunakan Ollama.
-- Dampak: Daftar model aktif/terpasang pada Ollama terverifikasi.
-- Verifikasi:
-  - `docker compose exec ollama ollama list` menampilkan `qwen2.5:1.5b` dan `nomic-embed-text:latest`.
+### 2026-03-31 (Permission Fix for Dataset Copy)
 
-## [2026-03-30 15:06] - Peralihan model default ke llama3.2
-- Agent: Codex
-- Ringkasan:
-  - Mengganti konfigurasi model default dari `qwen2.5:1.5b` ke `llama3.2` pada `.env`, `.env.example`, default config app, script bootstrap, dan README.
-  - Menggeneralisasi metadata model di endpoint `/api/tags` dan `/api/show` agar tidak hardcoded ke family `qwen2`.
-  - Pull model `llama3.2` di Ollama dan restart orchestrator agar runtime memakai model baru.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/config.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py
-  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/bootstrap.sh
-  - /home/hreen/Documents/Magang/ecoAi-llm/README.md
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk mengganti model ke `llama3.2`.
-- Dampak:
-  - Model default gateway berubah ke `llama3.2` dengan alias RAG `llama3.2-rag`.
-  - Model `llama3.2:latest` sudah tersedia di service Ollama.
-- Verifikasi:
-  - `docker compose exec ollama ollama list` menampilkan `llama3.2:latest`.
-  - `curl -s http://localhost:8080/health` menampilkan `ollama_model":"llama3.2"` dan `rag_model_alias":"llama3.2-rag"`.
+- Diagnosa error `EACCES` saat copy dataset menunjukkan folder target `datasets/` dimiliki `root`, sehingga user `hreen` tidak memiliki izin tulis.
+- Memperbaiki ownership folder `datasets/` ke UID/GID user aktif (`1000:1000`) menggunakan container helper.
+- Verifikasi ulang copy file berhasil:
+  - sumber: `/home/hreen/Downloads/Claude-Opus-4.6-Reasoning-887x/Opus4.6_reasoning_887x.jsonl`
+  - target: `/home/hreen/Documents/Magang/ecoAi-llm/datasets/Opus4.6_reasoning_887x.jsonl`
+- Membersihkan artefak sementara `__pycache__` agar working tree tetap rapi.
+- File terkait:
+  - datasets/Opus4.6_reasoning_887x.jsonl
+  - journal-change-monitor.md
 
-## [2026-03-30 15:28] - Rename branch dev/qwen2.5 menjadi dev/llama3.2
-- Agent: GitHub Copilot
-- Working Branch: dev/HuggingFace
-- Ringkasan:
-  - Commit semua perubahan migration model llama3.2 di branch `dev/HuggingFace`.
-  - Rename branch lokal `dev/qwen2.5` menjadi `dev/llama3.2`.
-  - Delete branch `dev/qwen2.5` dari remote dan push branch `dev/llama3.2` ke GitHub.
-  - Push commit di `dev/HuggingFace` ke remote.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env (perubahan model)
-  - /home/hreen/Documents/Magang/ecoAi-llm/.env.example (perubahan model)
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/config.py (perubahan model, metadata extraction)
-  - /home/hreen/Documents/Magang/ecoAi-llm/orchestrator/app/main.py (dynamic metadata functions)
-  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/bootstrap.sh (perubahan model)
-  - /home/hreen/Documents/Magang/ecoAi-llm/README.md (perubahan dokumentasi model)
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user untuk mengganti nama branch sesuai model default yang sekarang dipakai (llama3.2 bukan qwen2.5).
-- Dampak:
-  - Git history branch sekarang mencerminkan model yang dipakai.
-  - Branch management lebih konsisten dan mudah dipahami.
-  - Semua commits di `dev/HuggingFace` tersimpan untuk future reference.
-- Verifikasi:
-  - `git branch -a` menampilkan `dev/llama3.2` di lokal dan `remotes/origin/dev/llama3.2` di remote.
-  - `dev/qwen2.5` sudah tidak ada di lokal dan remote.
-  - `dev/HuggingFace` tetap ada dengan commit terakhir dari model migration.
-  - Branch tracking: saat ini bekerja di `dev/HuggingFace`, siap untuk operasi berikutnya.
+### 2026-03-31 (Multi-Dataset Auto-Ingest Upgrade)
 
-## [2026-03-30 15:52] - Penambahan script aktivasi runtime berdasarkan branch aktif
-- Agent: GitHub Copilot
-- Working Branch: dev/llama3.2
-- Ringkasan:
-  - Menambahkan script `scripts/run-current-branch.sh` untuk workflow: pindah branch lalu jalankan satu command.
-  - Script membaca branch aktif + `.env`, validasi kecocokan model terhadap branch, pull model, rebuild/restart service, lalu health check.
-  - Menambahkan retry health check agar tidak gagal karena race condition startup container.
-- File terdampak:
-  - /home/hreen/Documents/Magang/ecoAi-llm/scripts/run-current-branch.sh
-  - /home/hreen/Documents/Magang/ecoAi-llm/journal-change-monitor.md
-- Alasan: Menindaklanjuti permintaan user agar cukup pindah branch lalu jalankan satu script untuk mengaktifkan environment branch tersebut.
-- Dampak:
-  - Operasional branch switch lebih cepat dan minim error manual.
-  - Konsistensi runtime meningkat karena setup container terstandarisasi.
-- Verifikasi:
-  - Menjalankan `scripts/run-current-branch.sh` di `dev/llama3.2` berhasil.
-  - Output health endpoint valid dengan `ollama_model=llama3.2:latest`.
-  - Retry health check terbukti menangani startup delay orchestrator.
+- Mengubah ingestion dataset JSONL dari mode single-file menjadi auto-discovery berbasis glob (`/app/datasets/*.jsonl`) agar semua dataset baru ikut diproses otomatis.
+- Menambahkan deduplikasi per file menggunakan metadata tag dataset berbasis hash nama file, sehingga file yang sudah pernah di-ingest tidak diproses ulang saat startup berikutnya.
+- Menambahkan ingestion bertahap (batch insert) untuk menurunkan risiko bottleneck memori/waktu saat memproses dataset besar.
+- Menjalankan ingestion dataset pada background thread agar startup FastAPI tidak menunggu proses indexing selesai.
+- Menambahkan completion marker per dataset file (`doc_type=dataset_ingest_marker`) dan mekanisme resume aman (skip ID existing) agar ingest yang sempat terhenti bisa dilanjutkan tanpa crash/duplikasi.
+- Memperbaiki filter metadata marker pada query Chroma menggunakan operator `$and` agar status completion per dataset terbaca akurat.
+- Merefactor parser ingest ke mode streaming per pasangan dialog (tanpa memuat seluruh file ke memori) untuk mencegah OOM pada dataset besar.
+- Menurunkan `dataset_ingest_batch_size` default dari 256 ke 64 agar embedding insertion lebih stabil di resource terbatas.
+- Memperbaiki logika completion marker agar tetap dibuat walau tidak ada dokumen baru yang ditulis (kasus dokumen sudah ada dari run sebelumnya), selama file berisi pasangan dialog valid.
+- Menyetel ulang hybrid retrieval (bobot keyword lebih tinggi dan threshold anti-hallucination lebih adaptif) agar context relevan tidak terfilter terlalu ketat.
+- Menurunkan threshold guardrail confidence UI agar jawaban valid dari retrieval tidak terlalu sering dipaksa menjadi `No data found.`.
+- Menambahkan metadata tambahan (`dataset_file`) pada dokumen yang diindeks untuk observability per sumber dataset.
+- Menambahkan konfigurasi baru untuk kontrol ingest: `DATASET_JSONL_GLOB` dan `DATASET_INGEST_BATCH_SIZE`.
+- File terkait:
+  - orchestrator/app/vector_store.py
+  - orchestrator/app/config.py
+  - docker-compose.yml
+  - journal-change-monitor.md
+
+### 2026-03-31 (Branch Rename and Cleanup)
+
+- Mencoba rename branch aktif ke `dev.` namun ditolak Git karena nama branch tidak valid.
+- Melakukan rename branch aktif ke `dev` sebagai alternatif valid terdekat.
+- Menghapus branch lokal: `dev/llama3.2` dan `dev/qwen2.5`.
+- Menghapus branch remote: `origin/dev/llama3.2` dan `origin/dev/qwen2.5`.
+- Push branch baru `dev` ke remote dan set upstream tracking ke `origin/dev`.
+- File terkait:
+  - journal-change-monitor.md
+
+### 2026-03-31 (Non-RAG Model Option)
+
+- Menambahkan opsi model non-RAG (`qwen2.5-direct:7b`) pada endpoint kompatibel Open WebUI (`/api/tags`).
+- Menambahkan routing mode model di gateway:
+  - model RAG (`qwen2.5-rag:7b`) tetap melalui pipeline retrieval + guardrail.
+  - model direct non-RAG melewati retrieval dan memanggil LLM langsung.
+- Memperbarui endpoint `/api/show`, `/api/chat`, dan `/api/generate` agar mendukung dua mode model tersebut (RAG vs direct).
+- File terkait:
+  - orchestrator/app/main.py
+  - orchestrator/app/config.py
+  - journal-change-monitor.md

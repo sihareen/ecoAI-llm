@@ -1,0 +1,5 @@
+Phi-3 Mini adalah model bahasa default yang dijalankan via Ollama dalam sistem ini.
+Qwen 2.5 7B tetap tersedia sebagai model fallback/legacy.
+ChromaDB digunakan sebagai vector database untuk menyimpan embedding dokumen.
+LangChain mengatur alur retrieval lalu generation untuk menjawab pertanyaan user.
+Arsitektur dasar saat ini: user query -> retrieve context dari ChromaDB -> generate jawaban via Ollama.
