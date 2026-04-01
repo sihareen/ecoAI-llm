@@ -1,7 +1,0 @@
-Contoh reasoning trace:
-- Pertanyaan: Model mana yang dipilih untuk latensi rendah?
-- Langkah: identifikasi constraint latency, evaluasi ukuran model, bandingkan kualitas jawaban, pilih trade-off terbaik.
-
-Contoh decision pattern:
-- Jika query ambigu -> minta klarifikasi atau lakukan query rewrite dengan kata kunci domain.
-- Jika konteks retrieval minim -> jawab ketidakcukupan informasi.
